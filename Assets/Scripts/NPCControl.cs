@@ -7,6 +7,12 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class NPCControl : MonoBehaviour
 {
+    #region global FSM state variables
+    public static float TimeCantSeePlayer = 10;
+    public static int AlertDistanceInMeters = 20;
+    public static int SecondsToMoveToAnotherWaypoint = 5;
+    #endregion
+
     public GameObject target; // target = player; //gameObject = startPoint
     public Transform[] PatrolWayPoints;
     FSMSystem fsm;
@@ -26,6 +32,7 @@ public class NPCControl : MonoBehaviour
     {
         fsm.CurrentState.Reason(target, gameObject);
         fsm.CurrentState.Act(target, gameObject);
+        Debug.DrawLine(transform.position, transform.forward * 50);
     }
 
     // The NPC has two states: FollowPath and ChasePlayer
@@ -33,14 +40,15 @@ public class NPCControl : MonoBehaviour
     // If it's on ChasePlayerState and LostPlayer transition is fired, it returns to FollowPath
     private void MakeFSM()
     {
-        FollowPathState follow = new FollowPathState(/*path*/);
-        follow.AddTransition(Transition.SawPlayer, StateID.ChasingPlayer);
+        //FollowPathState follow = new FollowPathState(/*path*/);
+        //follow.AddTransition(Transition.SawPlayer, StateID.ChasingPlayer);
 
-        ChasePlayerState chase = new ChasePlayerState();
-        chase.AddTransition(Transition.LostPlayer, StateID.FollowingPath);
+        //ChasePlayerState chase = new ChasePlayerState();
+        //chase.AddTransition(Transition.LostPlayer, StateID.FollowingPath);
 
         PatrolState patrolState = new PatrolState(PatrolWayPoints);
         patrolState.AddTransition(Transition.Alert, StateID.AlertNpc);
+        patrolState.AddTransition(Transition.Attack, StateID.AttackingPlayer);
 
         AlertState alertState = new AlertState();
         alertState.AddTransition(Transition.Attack, StateID.AttackingPlayer);

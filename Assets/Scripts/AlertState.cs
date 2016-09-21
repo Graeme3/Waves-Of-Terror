@@ -2,22 +2,28 @@ using UnityEngine;
 
 public class AlertState : FSMState
 {
-    private float TimeCantSeePlayer = 10;
+    public AlertState()
+    {
+        stateID = StateID.AlertNpc;
+    }
 
     public override void Reason(GameObject player, GameObject npc)
     {
-        
+        //DEBUG
+        npc.GetComponent<Renderer>().material.color = Color.yellow;
+        // END DEBUG
 
         if (GameObjectUtils.NpcSeesTarget(npc, player))
         {
             StopTimeout(npc);
+            GameObjectUtils.StopNavMesh(npc);
             npc.GetComponent<NPCControl>().SetTransition(Transition.Attack);
         }
         else
         {
             if(TimeoutStatus(npc) == FSMTimeoutStatus.NotStarted)
             {
-                SetNewTimeout(npc, TimeCantSeePlayer);
+                SetNewTimeout(npc, NPCControl.TimeCantSeePlayer);
             }
 
             if (TimeoutStatus(npc) == FSMTimeoutStatus.ReachedZero)

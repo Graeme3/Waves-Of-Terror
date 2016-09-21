@@ -1,10 +1,8 @@
 using System.Collections;
 using UnityEngine;
 
-public class PatrolState : FSMState {
-    
-    private int AlertDistanceInMeters = 10;
-    private int SecondsToMoveToAnotherWaypoint = 10;
+public class PatrolState : FSMState
+{
     private Transform[] Waypoints;
     private int MovementVelocity;
     private System.Random rand;
@@ -13,14 +11,24 @@ public class PatrolState : FSMState {
     {
         Waypoints = waypoints;
         MovementVelocity = movementVelocity;
+        stateID = StateID.Patroling;
     }
 
     public override void Reason(GameObject player, GameObject npc)
     {
+        //DEBUG
+        npc.GetComponent<Renderer>().material.color = Color.green;
+        // END DEBUG
+
         // if player is in range
-        if(Vector3.Distance(player.transform.position, npc.transform.position) <= AlertDistanceInMeters )
+        if (Vector3.Distance(player.transform.position, npc.transform.position) <= NPCControl.AlertDistanceInMeters )
         {
             npc.GetComponent<NPCControl>().SetTransition(Transition.Alert);
+        }
+
+        if (GameObjectUtils.NpcSeesTarget(npc, player))
+        {
+            npc.GetComponent<NPCControl>().SetTransition(Transition.Attack);
         }
     }
 
@@ -29,7 +37,7 @@ public class PatrolState : FSMState {
        
         if(TimeoutStatus(npc) == FSMTimeoutStatus.NotStarted)
         {
-            SetNewTimeout(npc,SecondsToMoveToAnotherWaypoint);
+            SetNewTimeout(npc, NPCControl.SecondsToMoveToAnotherWaypoint);
         }
 
 
@@ -45,9 +53,10 @@ public class PatrolState : FSMState {
 
             // move to the waypoint (using navMeshAgent)
             GameObjectUtils.MoveToPositionNavMesh(npc,Waypoints[waypointIndex].position);
+            Debug.Log("Moving to waypoint " + waypointIndex);
 
             // set new timeout
-            SetNewTimeout(npc, 10);
+            SetNewTimeout(npc, NPCControl.SecondsToMoveToAnotherWaypoint);
         }
 
         

@@ -11,21 +11,46 @@ public class GameObjectUtils
 
     public static void MoveToPositionNavMesh(GameObject obj, Vector3 position)
     {
-        // run obj movement animation
-
+        obj.GetComponent<NavMeshAgent>().Resume();
         obj.GetComponent<NavMeshAgent>().SetDestination(position);
+    }
+
+    public static void StopNavMesh(GameObject obj)
+    {
+        obj.GetComponent<NavMeshAgent>().Stop();
     }
 
     public static bool NpcSeesTarget(GameObject npc, GameObject target)
     {
         // TODO: Vanilson
-        float coneOfVision = 60; // 60 degrees
-        float angle = Vector3.Angle(npc.transform.forward, target.transform.position);
-        if(angle <= coneOfVision)
+        float fieldOfViewRange = 60.0F; // 60 degrees
+        float npcRayMaximumView = 100.0F; // 20 meters, for instance
+
+        Vector3 rayDirectionFromNpcToTarget = target.transform.position - npc.transform.position;
+        // angleBetweenNpcAndTarget <= fieldOfViewRange
+        if (Vector3.Angle(rayDirectionFromNpcToTarget, npc.transform.forward) <= fieldOfViewRange)
         {
-            return true;
+            RaycastHit hit;
+            if(Physics.Raycast(npc.transform.position,rayDirectionFromNpcToTarget,out hit, npcRayMaximumView))
+            {
+                return hit.transform.tag == "Player";
+            }
         }
         return false;
+    }
+
+    public static void DrawLine(Vector3 start, Vector3 end, Color color, float duration = 0.2f)
+    {
+        GameObject myLine = new GameObject();
+        myLine.transform.position = start;
+        myLine.AddComponent<LineRenderer>();
+        LineRenderer lr = myLine.GetComponent<LineRenderer>();
+        lr.material = new Material(Shader.Find("Particles/Alpha Blended Premultiply"));
+        lr.SetColors(color, color);
+        lr.SetWidth(0.1f, 0.1f);
+        lr.SetPosition(0, start);
+        lr.SetPosition(1, end);
+        GameObject.Destroy(myLine, duration);
     }
 
 }
